@@ -1,0 +1,7 @@
+The following shows a collection of projects I have produced over the last 2-3 years. They showcase my range of skills as I try out a range of domains to expand my Software Engineering Horizons - whilst you can also clearly see my interest in becoming a skilled developer in Rust through the several projects which I have chosen to implement in part in this language!
+
+Through these all you can certainly see my growth as a developer. I hope that its clear that my emphasis on code quality has increased and I have produced better, more readable programs as time has developed. That said, I still have a huge amount to learn and my aim is to delve into more domains to try and learn the most about new technologies and to become the best developer I can be.
+
+---
+
+My focus right now lies around web technologies, in particular backend tech stacks and concepts as I move into the juniour developer stage of my Software Engineering journey, having recently graduated with a first in Computer Science from the University of St Andrews - which [Recently got the Number 1 University in the UK spot](https://news.st-andrews.ac.uk/archive/st-andrews-top-in-new-uk-ranking/) from both the Guardian and the Times, beating both Oxford and Cambridge. I now want to expand the knowledge gained from that education into more practical, applicable skills which I can use to produce the best services and code possible within my new role at **[Sky](https://www.sky.com/)**.

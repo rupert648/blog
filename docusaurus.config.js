@@ -33,7 +33,7 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
-          routeBasePath: '/about',
+          routeBasePath: '/projects',
           sidebarPath: require.resolve('./sidebars.js'),
         },
         blog: {
@@ -58,9 +58,9 @@ const config = {
         items: [
           {
             type: 'doc',
-            docId: 'index',
+            docId: 'Introduction',
             position: 'left',
-            label: 'About',
+            label: 'Projects',
           },
           {to: '/blog', label: 'Blog', position: 'left'},
           {
@@ -74,15 +74,15 @@ const config = {
         style: 'dark',
         links: [
           {
-            title: 'About',
+            title: 'Project',
             items: [
               {
                 label: 'Info Page',
-                to: '/about/index',
+                to: '/projects/index',
               },
               {
                 label: 'Projects',
-                to: '/about/project'
+                to: '/projects/project'
               }
             ],
           },
