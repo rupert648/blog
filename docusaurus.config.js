@@ -77,13 +77,9 @@ const config = {
             title: 'Project',
             items: [
               {
-                label: 'Info Page',
-                to: '/projects/index',
-              },
-              {
                 label: 'Projects',
-                to: '/projects/project'
-              }
+                to: '/projects/introduction'
+              },
             ],
           },
           {
@@ -97,6 +93,10 @@ const config = {
                 label: 'Github',
                 href: 'https://www.github.com/rupert648',
               },
+              {
+                label: 'Medium',
+                href: 'https://medium.com/@rupertcarr'
+              }
             ],
           },
           {
