@@ -10,32 +10,30 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    title: 'Sky Developer',
+    Svg: require('@site/static/img/Sky_Group_logo_2020.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Sky Developer Since September 2022. Working on producing the best technologies and services possible to enhance customer experience
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    title: 'University of St Andrews',
+    Svg: require('@site/static/img/University_of_St_Andrews_arms.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Graduate of the University of St Andrews.
+        <strong>1st Class BSc (w/ hons) in Computer Science</strong>
       </>
     ),
   },
   {
-    title: 'Powered by React',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    title: 'Passionate Clean Coder',
+    Svg: require('@site/static/img/browser-coding-svgrepo-com.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        A passionate, conscientious clean coder with an aim to build practical, sustainable and expandable software solutions
       </>
     ),
   },
