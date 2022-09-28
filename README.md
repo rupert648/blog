@@ -1,6 +1,8 @@
-# Website
+# My Website!
+[![Netlify Status](https://api.netlify.com/api/v1/badges/3abea8c3-8ae2-46fc-aaea-3214fb75080d/deploy-status)](https://app.netlify.com/sites/lively-jelly-96461b/deploys)
 
-This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
+Blog and Portfolio site where I can showcase projects and write articles about anything I want! 
+This website is built using [Docusaurus 2](https://docusaurus.io/), a static site generator created at Meta, allowing me to easily deploy new content to my site through easy use of markdown files.
 
 ### Installation
 
@@ -24,7 +26,6 @@ $ yarn build
 
 This command generates static content into the `build` directory and can be served using any static contents hosting service.
 
-### Deployment
 
 Using SSH:
 
