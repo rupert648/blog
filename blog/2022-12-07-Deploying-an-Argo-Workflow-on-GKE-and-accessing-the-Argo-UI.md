@@ -301,7 +301,7 @@ You should be all setup! Run the following to see the IP address that your ingre
 ```bash
 kubectl get ingresses -n argo
 ```
-Then navigate in your browser to the address <ip>/argo.
+Then navigate in your browser to the address/argo.
 
 Hopefully you have success!
 
