@@ -1,3 +1,10 @@
+
+---
+slug: Dynamically Scaling a Workflow Step in Argo Workflows
+title: Dynamically Scaling a Workflow Step in Argo Workflows
+authors: [rupert]
+tags: [Kubernetes, Argo, Argo Workflows]
+---
 # Dynamically Scaling a Workflow Step in Argo Workflows
 
 What is Argo
