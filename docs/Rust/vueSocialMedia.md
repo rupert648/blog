@@ -4,9 +4,12 @@ id: Vue & Rust Social Media Site
 [Github](https://github.com/fmckeogh/nebula)
 
 **Technologies:** Actix, VueJS, Postgres
+
+<img src="https://rustacean.net/assets/rustacean-flat-gesture.png" alt="drawing" width="200"/>
+
 ## About 
- Designed and Implemented a Federated Social Media site using the Activity Pub protocol. Created reactive VueJS frontend served by a rust (actix) backend accessing a postgres database.
-![https://rustacean.net/assets/rustacean-flat-gesture.png](https://rustacean.net/assets/rustacean-flat-gesture.png)
+Designed and Implemented a Federated Social Media site using the Activity Pub protocol. Created reactive VueJS frontend served by a rust (actix) backend accessing a postgres database.
+
 ---
 ##### Agile Development
 My largest experience of agile development to date. This project taught me the importance of incremental development and developing a project with adaptability. I.E. being able to change our development process to meet agile requirements given to us by our scrum manager.

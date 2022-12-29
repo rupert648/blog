@@ -2,10 +2,15 @@
 id: Squash club database and UI interface
 ---
 *no github available*
+
 **Technologies:** React, NodeJS, MariaDB, SemanticUI
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Mariadb-seal-browntext.svg/2560px-Mariadb-seal-browntext.svg.png" alt="drawing" width="200"/>
+
 ## About 
- Project to improve my SQL skills by developing a complex SQL database with complex queries. UI built in React (with Semantic components) served by a NodeJS backend.
-![https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Mariadb-seal-browntext.svg/2560px-Mariadb-seal-browntext.svg.png](https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Mariadb-seal-browntext.svg/2560px-Mariadb-seal-browntext.svg.png)
+
+Project to improve my SQL skills by developing a complex SQL database with complex queries. UI built in React (with Semantic components) served by a NodeJS backend.
+
 ---
 ##### Database Design
 Designing a database to store all the required management whilst simultaneously ensuring the finished database design was in Boyce Codd Normal form; ensuring atomicity, consistency as well as avoiding data redundancy.

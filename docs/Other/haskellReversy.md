@@ -2,10 +2,13 @@
 id: Haskell Reversy Game implementation and AI
 ---
 _no github available_
+
 **Technologies:** Haskell
+<img src="https://res.cloudinary.com/practicaldev/image/fetch/s--G0P1KX-J--/c_imagga_scale,f_auto,fl_progressive,h_900,q_auto,w_1600/https://thepracticaldev.s3.amazonaws.com/i/5sbbqt9sxzw0sspnr7at.png" alt="drawing" width="200"/>
+
 ## About 
  Used alpha beta pruning to integrate an efficient, effective AI in Haskell. Game implemented with network Capabilities for cross-machine play.
- ![https://res.cloudinary.com/practicaldev/image/fetch/s--G0P1KX-J--/c_imagga_scale,f_auto,fl_progressive,h_900,q_auto,w_1600/https://thepracticaldev.s3.amazonaws.com/i/5sbbqt9sxzw0sspnr7at.png](https://res.cloudinary.com/practicaldev/image/fetch/s--G0P1KX-J--/c_imagga_scale,f_auto,fl_progressive,h_900,q_auto,w_1600/https://thepracticaldev.s3.amazonaws.com/i/5sbbqt9sxzw0sspnr7at.png)
+
 ---
 ##### Functional Programming
 this project taught me many of the core concepts of functional programming; requiring me to think in a different way than I was perhaps used to.
