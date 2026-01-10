@@ -1,0 +1,15 @@
+steps:
+  build:
+    image: ghcr.io/getzola/zola:v0.19.2
+    commands:
+      - zola build
+
+  deploy:
+    image: alpine:latest
+    commands:
+      - rm -rf /deploy/*
+      - cp -r public/* /deploy/
+    volumes:
+      - /home/pertbox/projects/blog/public:/deploy
+    when:
+      branch: main
