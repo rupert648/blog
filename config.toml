@@ -8,9 +8,9 @@ compile_sass = true
 minify_html = true
 taxonomies = [{ name = "tags" }]
 
-[markdown]
-highlight_code = true
-highlight_theme = "ayu-light"
+[markdown.highlighting]
+enabled = true
+theme = "gruvbox-light-medium"
 
 [extra]
 toc = true
