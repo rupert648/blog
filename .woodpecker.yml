@@ -1,12 +1,10 @@
 steps:
-  build:
-    image: ghcr.io/getzola/zola:v0.19.2
-    commands:
-      - zola build
-
-  deploy:
+  build-and-deploy:
     image: alpine:latest
     commands:
+      - apk add --no-cache curl tar
+      - curl -sL https://github.com/getzola/zola/releases/download/v0.19.2/zola-v0.19.2-x86_64-unknown-linux-musl.tar.gz | tar xz -C /usr/local/bin
+      - zola build
       - rm -rf /deploy/*
       - cp -r public/* /deploy/
     volumes:
