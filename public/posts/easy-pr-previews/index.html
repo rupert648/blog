@@ -1,0 +1,190 @@
+<!doctype html><html class="dark light" lang=en><head><meta charset=UTF-8><meta content="IE=edge" http-equiv=X-UA-Compatible><meta content="width=device-width,initial-scale=1.0" name=viewport><meta content=https://pert.dev name=base><title>
+            
+                Your PR Previews Don't Need Vercel: My solution on a $5 VPS using Cloudflare and Github Actions
+            
+        </title><meta content="Your PR Previews Don't Need Vercel: My solution on a $5 VPS using Cloudflare and Github Actions" property=og:title><meta content="Pert's personal site" property=og:description><meta content="Pert's personal site" name=description><link href=https://pert.dev/icon/favicon.png rel=icon type=image/png><link href=https://pert.dev/fonts.css rel=stylesheet><script defer src=https://pert.dev/js/codeblock.js></script><script defer src=https://pert.dev/js/toc.js></script><script defer src=https://pert.dev/js/note.js></script><script>MathJax={tex:{inlineMath:[[`\$`,`\$`],[`\\\\(`,`\\\\)`]]}}</script><script async id=MathJax-script src=https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js></script><link title="
+    pert.dev
+" href=https://pert.dev/atom.xml rel=alternate type=application/atom+xml><link href=https://pert.dev/theme/light.css rel=stylesheet><link href=https://pert.dev/theme/dark.css id=darkModeStyle rel=stylesheet><script src=https://pert.dev/js/themetoggle.js></script><script>setTheme(getSavedTheme())</script><link href=https://pert.dev/main.css media=screen rel=stylesheet><body><div class=left-content></div><div class=content><nav><div class=left-nav><a href=https://pert.dev>pert.dev</a><div class=socials><a class=social href=https://twitter.com/rupert648 rel=me> <img alt=twitter src=https://pert.dev/icons/social/twitter.svg> </a><a class=social href=https://github.com/rupert648/ rel=me> <img alt=github src=https://pert.dev/icons/social/github.svg> </a><a class=social href=https://buymeacoffee.com/rupertcarr rel=me> <img alt=coffee src=https://pert.dev/icons/social/coffee.svg> </a></div></div><div class=right-nav><a href=https://pert.dev/posts style=margin-right:.5em>/posts</a><a href=https://pert.dev/projects style=margin-right:.5em>/projects</a><a href=https://pert.dev/tags style=margin-right:.5em>/tags</a><a onclick="toggleTheme(); event.preventDefault();" href=# id=dark-mode-toggle> <img alt=Light id=sun-icon src=https://pert.dev/icons/sun.svg> <img alt=Dark id=moon-icon src=https://pert.dev/icons/moon.svg style=filter:invert()> <img alt=Auto id=auto-icon src=https://pert.dev/icons/auto.svg style=filter:invert()> </a><script>updateItemToggleTheme()</script></div></nav><div data-selector="main article p" class=visible-element-observer-root><main><article><div class=title><div class=page-header>Your PR Previews Don't Need Vercel: My solution on a $5 VPS using Cloudflare and Github Actions</div><div class=meta>Posted on <time>2024-12-30</time></div></div><section class=body><h1 id=diy-pr-preview-deployments-it-s-easier-than-you-think><a aria-label="Anchor link for: diy-pr-preview-deployments-it-s-easier-than-you-think" class=zola-anchor href=#diy-pr-preview-deployments-it-s-easier-than-you-think>DIY PR Preview Deployments: It's Easier Than You Think!</a></h1><p>Let's preface this by admitting that the title is a little farcical - the fact that Vercel and other similar sites give you preview domains out of the box with no setup is a lovely feature. This blog is purely to show you that it's actually possible to configure these yourself, and furthermore, it's way easier than you might think!<p>To give you some context, my site <a href=https://pert.dev>pert.dev</a> is built on <a href=https://www.getzola.org/>Zola</a> - a static site which I serve on my $5 VPS from Linode, using <a href=https://caddyserver.com/>Caddy</a>. I use <a href=https://www.cloudflare.com/en-gb/>Cloudflare</a> as my domain registrar and for DNS. While my setup (which I'll link to at the end if you want to skip ahead) is specific to these tools, my goal for this blog is to demonstrate that the core technologies for setting this up yourself are actually <em>easy-peasy</em>, regardless of your stack.<h1 id=pr-previews-the-big-picture><a aria-label="Anchor link for: pr-previews-the-big-picture" class=zola-anchor href=#pr-previews-the-big-picture>PR-Previews: The Big Picture</a></h1><p>At their heart, PR previews are surprisingly simple and can be broken down into three main components. We'll dive deep into each one, but here's the overview:<ol><li><strong>DNS Management</strong>: Creating a new A record for our preview subdomain<li><strong>File Deployment</strong>: Getting our PR changes somewhere they can be served<li><strong>Web Server Config</strong>: Telling our web server how to serve these files</ol><p>The beauty is that these concepts apply whether you're running Next.js, Ruby on Rails, or a static site like mine.<h1 id=initial-setup><a aria-label="Anchor link for: initial-setup" class=zola-anchor href=#initial-setup>Initial Setup</a></h1><p>First, let's create the files we'll need in our repository:<pre class=language-bash data-lang=bash style=color:#61676c;background-color:#fafafa><code class=language-bash data-lang=bash><span style=color:#f29718>mkdir</span><span style=color:#ff8f40> -p</span><span> .github/workflows
+</span><span style=color:#f29718>touch</span><span> .github/workflows/pr-preview.yml
+</span></code></pre><p>We'll give this workflow some basic setup to run on PRs:<pre class=language-yml data-lang=yml style=color:#61676c;background-color:#fafafa><code class=language-yml data-lang=yml><span style=color:#399ee6>name</span><span style=color:#61676ccc>: </span><span style=color:#86b300>PR Preview
+</span><span>
+</span><span style=color:#ff8f40>on</span><span style=color:#61676ccc>:
+</span><span>  </span><span style=color:#399ee6>pull_request</span><span style=color:#61676ccc>:
+</span><span>    </span><span style=color:#399ee6>types</span><span style=color:#61676ccc>: </span><span>[</span><span style=color:#86b300>opened</span><span style=color:#61676ccc>, </span><span style=color:#86b300>synchronize</span><span style=color:#61676ccc>, </span><span style=color:#86b300>reopened</span><span>]
+</span><span>
+</span><span style=color:#399ee6>permissions</span><span style=color:#61676ccc>:
+</span><span>  </span><span style=color:#399ee6>pull-requests</span><span style=color:#61676ccc>: </span><span style=color:#86b300>write
+</span><span>
+</span><span style=color:#399ee6>jobs</span><span style=color:#61676ccc>:
+</span><span>  </span><span style=color:#399ee6>deploy-preview</span><span style=color:#61676ccc>:
+</span><span>    </span><span style=color:#399ee6>runs-on</span><span style=color:#61676ccc>: </span><span style=color:#86b300>ubuntu-latest
+</span><span>    </span><span style=color:#399ee6>steps</span><span style=color:#61676ccc>:
+</span><span>      - </span><span style=color:#399ee6>uses</span><span style=color:#61676ccc>: </span><span style=color:#86b300>actions/checkout@v3
+</span><span>      
+</span><span>      - </span><span style=color:#399ee6>name</span><span style=color:#61676ccc>: </span><span style=color:#86b300>Get PR number
+</span><span>        </span><span style=color:#399ee6>id</span><span style=color:#61676ccc>: </span><span style=color:#86b300>pr
+</span><span>        </span><span style=color:#399ee6>run</span><span style=color:#61676ccc>: </span><span style=color:#86b300>echo "PR_NUMBER=pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+</span><span>
+</span><span>      - </span><span style=color:#399ee6>name</span><span style=color:#61676ccc>: </span><span style=color:#86b300>Deploy Preview
+</span><span>        </span><span style=color:#399ee6>run</span><span style=color:#61676ccc>: </span><span style=color:#fa6e32>|
+</span><span style=color:#86b300>          chmod +x ./scripts/preview.sh
+</span><span style=color:#86b300>          ./scripts/preview.sh
+</span></code></pre><p>I'm not going to deep-dive into GitHub Actions here, but we've added the essential steps: checkout the repo, grab the PR number (which we'll use later), and run our deployment script.<p>Next, let's create our script file:<pre class=language-bash data-lang=bash style=color:#61676c;background-color:#fafafa><code class=language-bash data-lang=bash><span style=color:#f29718>mkdir</span><span> scripts </span><span style=color:#abb0b6;font-style:italic># if it doesn't exist already
+</span><span style=color:#f29718>touch</span><span> scripts/preview.sh
+</span><span style=color:#f29718>chmod</span><span> +x scripts/preview.sh
+</span></code></pre><h1 id=part-1-dns-magic-easier-than-you-think><a aria-label="Anchor link for: part-1-dns-magic-easier-than-you-think" class=zola-anchor href=#part-1-dns-magic-easier-than-you-think>Part 1: DNS Magic - Easier Than You Think</a></h1><p>You don't need to be a DNS wizard to get this working, but if you're curious about the details, I'll point you to some great resources on <a href=https://www.cloudflare.com/en-gb/learning/dns/what-is-dns/>DNS basics</a>.<p>This part assumes two things:<ul><li>You own the domain and can update DNS records<li>You have API access to your DNS provider (I'll show Cloudflare, but most providers have similar APIs)</ul><p>PR previews typically use a subdomain pattern like <code>pr-123.yourdomain.com</code>. Creating this is surprisingly straightforward - we just need an A record pointing to our server's IP. If your site is already live, you probably have something like:<pre style=color:#61676c;background-color:#fafafa><code><span>A record
+</span><span>yourdomain.com (or @)
+</span><span>253.253.253.253
+</span></code></pre><p>For our preview, we'll create a similar record but with our PR subdomain. Here's how we do it via the Cloudflare API:<pre class=language-bash data-lang=bash style=color:#61676c;background-color:#fafafa><code class=language-bash data-lang=bash><span style=color:#f29718>setup_dns</span><span>() {
+</span><span>    </span><span style=color:#fa6e32>local </span><span>preview_id</span><span style=color:#ed9366>=</span><span style=color:#86b300>$</span><span>1
+</span><span>    </span><span style=color:#fa6e32>local </span><span>server_ip</span><span style=color:#ed9366>=</span><span style=color:#86b300>"253.253.253.253"
+</span><span>    
+</span><span>    </span><span style=color:#abb0b6;font-style:italic># Check if record exists
+</span><span>    </span><span style=color:#fa6e32>local </span><span>existing_record</span><span style=color:#ed9366>=</span><span style=color:#86b300>$</span><span>(</span><span style=color:#f29718>curl</span><span style=color:#ff8f40> -s -X</span><span style=color:#86b300> GET "https://api.cloudflare.com/client/v4/zones/$</span><span>{CLOUDFLARE_ZONE_ID}</span><span style=color:#86b300>/dns_records?name=$</span><span>{preview_id}</span><span style=color:#86b300>.yourdomain.com" </span><span style=color:#61676ccc>\
+</span><span style=color:#ff8f40>        -H </span><span style=color:#86b300>"Authorization: Bearer $</span><span>{CLOUDFLARE_API_TOKEN}</span><span style=color:#86b300>" </span><span style=color:#61676ccc>\
+</span><span style=color:#ff8f40>        -H </span><span style=color:#86b300>"Content-Type: application/json"</span><span>)
+</span><span>    
+</span><span>    </span><span style=color:#fa6e32>if </span><span style=color:#f07171>echo </span><span style=color:#86b300>"$</span><span>existing_record</span><span style=color:#86b300>" </span><span style=color:#ed9366>| </span><span style=color:#f29718>grep</span><span style=color:#ff8f40> -q </span><span style=color:#86b300>"</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>count</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>:0"</span><span style=color:#ed9366>; </span><span style=color:#fa6e32>then
+</span><span>        </span><span style=color:#abb0b6;font-style:italic># Create new record
+</span><span>        </span><span style=color:#f29718>curl</span><span style=color:#ff8f40> -s -X</span><span> POST </span><span style=color:#86b300>"https://api.cloudflare.com/client/v4/zones/$</span><span>{CLOUDFLARE_ZONE_ID}</span><span style=color:#86b300>/dns_records" </span><span style=color:#61676ccc>\
+</span><span style=color:#ff8f40>            -H </span><span style=color:#86b300>"Authorization: Bearer $</span><span>{CLOUDFLARE_API_TOKEN}</span><span style=color:#86b300>" </span><span style=color:#61676ccc>\
+</span><span style=color:#ff8f40>            -H </span><span style=color:#86b300>"Content-Type: application/json" </span><span style=color:#61676ccc>\
+</span><span style=color:#ff8f40>            --data </span><span style=color:#86b300>"{
+</span><span style=color:#86b300>                </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>type</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>: </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>A</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>,
+</span><span style=color:#86b300>                </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>name</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>: </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>$</span><span>{preview_id}</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>,
+</span><span style=color:#86b300>                </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>content</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>: </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>$</span><span>{server_ip}</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>,
+</span><span style=color:#86b300>                </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>ttl</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>: 1,
+</span><span style=color:#86b300>                </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>proxied</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>: true
+</span><span style=color:#86b300>            }"
+</span><span>    </span><span style=color:#fa6e32>else
+</span><span>        </span><span style=color:#abb0b6;font-style:italic># Update existing record
+</span><span>        </span><span style=color:#fa6e32>local </span><span>record_id</span><span style=color:#ed9366>=</span><span style=color:#86b300>$</span><span>(</span><span style=color:#f07171>echo </span><span style=color:#86b300>"$</span><span>existing_record</span><span style=color:#86b300>" </span><span style=color:#ed9366>| </span><span style=color:#f29718>grep</span><span style=color:#ff8f40> -o </span><span style=color:#86b300>'"id":"[^"]*' </span><span style=color:#ed9366>| </span><span style=color:#f29718>cut</span><span style=color:#ff8f40> -d</span><span style=color:#86b300>'"'</span><span style=color:#ff8f40> -f4</span><span>)
+</span><span>        </span><span style=color:#f29718>curl</span><span style=color:#ff8f40> -s -X</span><span> PUT </span><span style=color:#86b300>"https://api.cloudflare.com/client/v4/zones/$</span><span>{CLOUDFLARE_ZONE_ID}</span><span style=color:#86b300>/dns_records/$</span><span>{record_id}</span><span style=color:#86b300>" </span><span style=color:#61676ccc>\
+</span><span style=color:#ff8f40>            -H </span><span style=color:#86b300>"Authorization: Bearer $</span><span>{CLOUDFLARE_API_TOKEN}</span><span style=color:#86b300>" </span><span style=color:#61676ccc>\
+</span><span style=color:#ff8f40>            -H </span><span style=color:#86b300>"Content-Type: application/json" </span><span style=color:#61676ccc>\
+</span><span style=color:#ff8f40>            --data </span><span style=color:#86b300>"{
+</span><span style=color:#86b300>                </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>type</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>: </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>A</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>,
+</span><span style=color:#86b300>                </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>name</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>: </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>$</span><span>{preview_id}</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>,
+</span><span style=color:#86b300>                </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>content</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>: </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>$</span><span>{server_ip}</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>,
+</span><span style=color:#86b300>                </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>ttl</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>: 1,
+</span><span style=color:#86b300>                </span><span style=color:#4cbf99>\"</span><span style=color:#86b300>proxied</span><span style=color:#4cbf99>\"</span><span style=color:#86b300>: true
+</span><span style=color:#86b300>            }"
+</span><span>    </span><span style=color:#fa6e32>fi
+</span><span>}
+</span></code></pre><p>We'll need to pass some environment variables from our GitHub Actions:<pre class=language-yml data-lang=yml style=color:#61676c;background-color:#fafafa><code class=language-yml data-lang=yml><span>      - </span><span style=color:#399ee6>name</span><span style=color:#61676ccc>: </span><span style=color:#86b300>Deploy Preview
+</span><span>        </span><span style=color:#399ee6>env</span><span style=color:#61676ccc>:
+</span><span>          </span><span style=color:#399ee6>PREVIEW_ID</span><span style=color:#61676ccc>: </span><span style=color:#86b300>${{ steps.pr.outputs.PR_NUMBER }}
+</span><span>          </span><span style=color:#399ee6>CLOUDFLARE_API_TOKEN</span><span style=color:#61676ccc>: </span><span style=color:#86b300>${{ secrets.CLOUDFLARE_API_TOKEN }}
+</span><span>          </span><span style=color:#399ee6>CLOUDFLARE_ZONE_ID</span><span style=color:#61676ccc>: </span><span style=color:#86b300>${{ secrets.CLOUDFLARE_ZONE_ID }}
+</span><span>        </span><span style=color:#399ee6>run</span><span style=color:#61676ccc>: </span><span style=color:#fa6e32>|
+</span><span style=color:#86b300>          chmod +x ./scripts/preview.sh
+</span><span style=color:#86b300>          ./scripts/preview.sh
+</span></code></pre><p>The Cloudflare <a href=https://developers.cloudflare.com/fundamentals/api/get-started/create-token/>API token</a> and <a href=https://developers.cloudflare.com/fundamentals/setup/find-account-and-zone-ids/>Zone ID</a> should be stored as GitHub secrets.<h1 id=part-2-deploying-your-changes><a aria-label="Anchor link for: part-2-deploying-your-changes" class=zola-anchor href=#part-2-deploying-your-changes>Part 2: Deploying Your Changes</a></h1><p>This part will vary depending on your stack, but the principle is the same: get your PR changes somewhere they can be served. I'll show you my Zola setup, but you can adapt this for any framework.<p>In my case, Zola builds a <code>/public</code> directory with all my static files. Your build process might look different:<pre class=language-yml data-lang=yml style=color:#61676c;background-color:#fafafa><code class=language-yml data-lang=yml><span>      - </span><span style=color:#399ee6>name</span><span style=color:#61676ccc>: </span><span style=color:#86b300>Build site
+</span><span>        </span><span style=color:#399ee6>run</span><span style=color:#61676ccc>: </span><span style=color:#fa6e32>|
+</span><span style=color:#86b300>          # npm run build  # for Next.js/React
+</span><span style=color:#86b300>          # yarn build     # for Gatsby
+</span><span style=color:#86b300>          # bundle exec jekyll build  # for Jekyll
+</span><span style=color:#86b300>          zola build      # my case
+</span></code></pre><p>Now we need to get these files to our server. Here's a simple but effective approach using nothing other than good old scp:<pre class=language-bash data-lang=bash style=color:#61676c;background-color:#fafafa><code class=language-bash data-lang=bash><span style=color:#f29718>deploy_files</span><span>() {
+</span><span>    </span><span style=color:#fa6e32>local </span><span>preview_id</span><span style=color:#ed9366>=</span><span style=color:#86b300>$</span><span>1
+</span><span>    
+</span><span>    </span><span style=color:#abb0b6;font-style:italic># Ensure preview directory exists
+</span><span>    </span><span style=color:#f29718>ssh </span><span style=color:#86b300>"$</span><span>USER</span><span style=color:#86b300>@$</span><span>HOST</span><span style=color:#86b300>" "sudo mkdir -p /var/www/previews/$</span><span>{preview_id}</span><span style=color:#86b300>"
+</span><span>    
+</span><span>    </span><span style=color:#abb0b6;font-style:italic># Create temp directory for transfer
+</span><span>    </span><span style=color:#f29718>ssh </span><span style=color:#86b300>"$</span><span>USER</span><span style=color:#86b300>@$</span><span>HOST</span><span style=color:#86b300>" "mkdir -p /tmp/$</span><span>{preview_id}</span><span style=color:#86b300>"
+</span><span>    
+</span><span>    </span><span style=color:#abb0b6;font-style:italic># Copy built files
+</span><span>    </span><span style=color:#f29718>scp</span><span style=color:#ff8f40> -r</span><span> public/</span><span style=color:#ed9366>* </span><span style=color:#86b300>"$</span><span>USER</span><span style=color:#86b300>@$</span><span>HOST</span><span style=color:#86b300>:/tmp/$</span><span>{preview_id}</span><span style=color:#86b300>/"
+</span><span>    
+</span><span>    </span><span style=color:#abb0b6;font-style:italic># Move files to final location
+</span><span>    </span><span style=color:#f29718>ssh </span><span style=color:#86b300>"$</span><span>USER</span><span style=color:#86b300>@$</span><span>HOST</span><span style=color:#86b300>" "sudo rm -rf /var/www/previews/$</span><span>{preview_id}</span><span style=color:#86b300>/* && </span><span style=color:#4cbf99>\
+</span><span style=color:#86b300>                       sudo mv /tmp/$</span><span>{preview_id}</span><span style=color:#86b300>/* /var/www/previews/$</span><span>{preview_id}</span><span style=color:#86b300>/ && </span><span style=color:#4cbf99>\
+</span><span style=color:#86b300>                       rm -rf /tmp/$</span><span>{preview_id}</span><span style=color:#86b300>"
+</span><span>}
+</span></code></pre><p>Add the SSH credentials to your GitHub Action:<pre class=language-yml data-lang=yml style=color:#61676c;background-color:#fafafa><code class=language-yml data-lang=yml><span>      - </span><span style=color:#399ee6>name</span><span style=color:#61676ccc>: </span><span style=color:#86b300>Deploy Preview
+</span><span>        </span><span style=color:#399ee6>env</span><span style=color:#61676ccc>:
+</span><span>          </span><span style=color:#399ee6>HOST</span><span style=color:#61676ccc>: </span><span style=color:#86b300>${{ secrets.SERVER_HOST }}
+</span><span>          </span><span style=color:#399ee6>USER</span><span style=color:#61676ccc>: </span><span style=color:#86b300>${{ secrets.SERVER_USER }}
+</span><span>          </span><span style=color:#399ee6>PREVIEW_ID</span><span style=color:#61676ccc>: </span><span style=color:#86b300>${{ steps.pr.outputs.PR_NUMBER }}
+</span><span>          </span><span style=color:#399ee6>CLOUDFLARE_API_TOKEN</span><span style=color:#61676ccc>: </span><span style=color:#86b300>${{ secrets.CLOUDFLARE_API_TOKEN }}
+</span><span>          </span><span style=color:#399ee6>CLOUDFLARE_ZONE_ID</span><span style=color:#61676ccc>: </span><span style=color:#86b300>${{ secrets.CLOUDFLARE_ZONE_ID }}
+</span><span>        </span><span style=color:#399ee6>run</span><span style=color:#61676ccc>: </span><span style=color:#fa6e32>|
+</span><span style=color:#86b300>          chmod +x ./scripts/preview.sh
+</span><span style=color:#86b300>          ./scripts/preview.sh
+</span></code></pre><h1 id=part-3-web-server-configuration><a aria-label="Anchor link for: part-3-web-server-configuration" class=zola-anchor href=#part-3-web-server-configuration>Part 3: Web Server Configuration</a></h1><p>The final piece is telling your web server about our new site. I'll show you how to do this with different servers:<p>First, create a directory for our preview configs:<pre class=language-bash data-lang=bash style=color:#61676c;background-color:#fafafa><code class=language-bash data-lang=bash><span style=color:#abb0b6;font-style:italic># On your server
+</span><span style=color:#f29718>sudo</span><span> mkdir</span><span style=color:#ff8f40> -p</span><span> /etc/caddy/conf.d  </span><span style=color:#abb0b6;font-style:italic># for Caddy
+</span><span style=color:#abb0b6;font-style:italic># or
+</span><span style=color:#f29718>sudo</span><span> mkdir</span><span style=color:#ff8f40> -p</span><span> /etc/nginx/sites-available  </span><span style=color:#abb0b6;font-style:italic># for Nginx
+</span></code></pre><p><strong>For Caddy</strong> (my choice because it makes SSL super easy): Add this to your main Caddyfile:<pre class=language-Caddyfile data-lang=Caddyfile style=color:#61676c;background-color:#fafafa><code class=language-Caddyfile data-lang=Caddyfile><span>import /etc/caddy/conf.d/*
+</span></code></pre><p>Then create preview configs like this:<pre class=language-bash data-lang=bash style=color:#61676c;background-color:#fafafa><code class=language-bash data-lang=bash><span style=color:#f29718>setup_caddy</span><span>() {
+</span><span>    </span><span style=color:#fa6e32>local </span><span>preview_id</span><span style=color:#ed9366>=</span><span style=color:#86b300>$</span><span>1
+</span><span>    </span><span style=color:#fa6e32>local </span><span>config_content</span><span style=color:#ed9366>=</span><span style=color:#86b300>"$</span><span>{preview_id}</span><span style=color:#86b300>.yourdomain.com {
+</span><span style=color:#86b300>        root * /var/www/previews/$</span><span>{preview_id}
+</span><span style=color:#86b300>        file_server
+</span><span style=color:#86b300>    }"
+</span><span>    
+</span><span>    </span><span style=color:#abb0b6;font-style:italic># Add/update site configuration
+</span><span>    </span><span style=color:#f07171>echo </span><span style=color:#86b300>"$</span><span>config_content</span><span style=color:#86b300>" </span><span style=color:#ed9366>| </span><span style=color:#f29718>ssh </span><span style=color:#86b300>"$</span><span>USER</span><span style=color:#86b300>@$</span><span>HOST</span><span style=color:#86b300>" "sudo tee /etc/caddy/conf.d/$</span><span>{preview_id}</span><span style=color:#86b300>.conf"
+</span><span>    
+</span><span>    </span><span style=color:#abb0b6;font-style:italic># Reload Caddy
+</span><span>    </span><span style=color:#f29718>ssh </span><span style=color:#86b300>"$</span><span>USER</span><span style=color:#86b300>@$</span><span>HOST</span><span style=color:#86b300>" "sudo systemctl reload caddy"
+</span><span>}
+</span></code></pre><p><strong>For Nginx</strong>:<pre class=language-nginx data-lang=nginx style=color:#61676c;background-color:#fafafa><code class=language-nginx data-lang=nginx><span>server {
+</span><span>    listen 80;
+</span><span>    server_name pr-123.yourdomain.com;
+</span><span>    root /var/www/previews/pr-123;
+</span><span>    
+</span><span>    location / {
+</span><span>        try_files $uri $uri/ =404;
+</span><span>    }
+</span><span>}
+</span></code></pre><p><strong>For Apache</strong>:<pre class=language-apache data-lang=apache style=color:#61676c;background-color:#fafafa><code class=language-apache data-lang=apache><span>&LTVirtualHost *:80>
+</span><span>    ServerName pr-123.yourdomain.com
+</span><span>    DocumentRoot /var/www/previews/pr-123
+</span><span>
+</span><span>    &LTDirectory /var/www/previews/pr-123>
+</span><span>        Options Indexes FollowSymLinks
+</span><span>        AllowOverride None
+</span><span>        Require all granted
+</span><span>    &LT/Directory>
+</span><span>&LT/VirtualHost>
+</span></code></pre><h1 id=putting-it-all-together><a aria-label="Anchor link for: putting-it-all-together" class=zola-anchor href=#putting-it-all-together>Putting It All Together</a></h1><p>Our complete <code>preview.sh</code> script looks like this:<pre class=language-bash data-lang=bash style=color:#61676c;background-color:#fafafa><code class=language-bash data-lang=bash><span style=color:#abb0b6;font-style:italic>#!/bin/bash
+</span><span>
+</span><span style=color:#f29718>setup_dns</span><span>() {
+</span><span>    </span><span style=color:#abb0b6;font-style:italic># DNS setup function from above
+</span><span>}
+</span><span>
+</span><span style=color:#f29718>deploy_files</span><span>() {
+</span><span>    </span><span style=color:#abb0b6;font-style:italic># File deployment function from above
+</span><span>}
+</span><span>
+</span><span style=color:#f29718>setup_webserver</span><span>() {
+</span><span>    </span><span style=color:#abb0b6;font-style:italic># Web server config function from above
+</span><span>}
+</span><span>
+</span><span style=color:#f29718>main</span><span>() {
+</span><span>    </span><span style=color:#f29718>setup_dns </span><span style=color:#86b300>"$</span><span>PREVIEW_ID</span><span style=color:#86b300>"
+</span><span>    </span><span style=color:#f29718>deploy_files </span><span style=color:#86b300>"$</span><span>PREVIEW_ID</span><span style=color:#86b300>"
+</span><span>    </span><span style=color:#f29718>setup_webserver </span><span style=color:#86b300>"$</span><span>PREVIEW_ID</span><span style=color:#86b300>"
+</span><span>}
+</span><span>
+</span><span style=color:#f29718>main
+</span></code></pre><h1 id=cleanup><a aria-label="Anchor link for: cleanup" class=zola-anchor href=#cleanup>Cleanup</a></h1><p>One thing we haven't addressed is cleanup. When a PR is closed, we need to:<ol><li>Remove the DNS record<li>Delete the preview files<li>Remove the web server config</ol><p>Create a new GitHub workflow for this:<pre class=language-yml data-lang=yml style=color:#61676c;background-color:#fafafa><code class=language-yml data-lang=yml><span style=color:#399ee6>name</span><span style=color:#61676ccc>: </span><span style=color:#86b300>Cleanup PR Preview
+</span><span>
+</span><span style=color:#ff8f40>on</span><span style=color:#61676ccc>:
+</span><span>  </span><span style=color:#399ee6>pull_request</span><span style=color:#61676ccc>:
+</span><span>    </span><span style=color:#399ee6>types</span><span style=color:#61676ccc>: </span><span>[</span><span style=color:#86b300>closed</span><span>]
+</span><span>
+</span><span style=color:#399ee6>jobs</span><span style=color:#61676ccc>:
+</span><span>  </span><span style=color:#399ee6>cleanup</span><span style=color:#61676ccc>:
+</span><span>    </span><span style=color:#399ee6>runs-on</span><span style=color:#61676ccc>: </span><span style=color:#86b300>ubuntu-latest
+</span><span>    </span><span style=color:#399ee6>steps</span><span style=color:#61676ccc>:
+</span><span>      - </span><span style=color:#399ee6>uses</span><span style=color:#61676ccc>: </span><span style=color:#86b300>actions/checkout@v3
+</span><span>      
+</span><span>      - </span><span style=color:#399ee6>name</span><span style=color:#61676ccc>: </span><span style=color:#86b300>Cleanup
+</span><span>        </span><span style=color:#399ee6>env</span><span style=color:#61676ccc>:
+</span><span>          </span><span style=color:#399ee6>PREVIEW_ID</span><span style=color:#61676ccc>: </span><span style=color:#86b300>pr-${{ github.event.pull_request.number }}
+</span><span>          </span><span style=color:#abb0b6;font-style:italic># Add other environment variables
+</span><span>        </span><span style=color:#399ee6>run</span><span style=color:#61676ccc>: </span><span style=color:#86b300>./scripts/cleanup.sh
+</span></code></pre><p>The complete cleanup scripts are available in my repo:<ul><li><a href=https://github.com/rupert648/pert.dev/blob/main/.github/workflows/cleanup-preview.yml>Cleanup Workflow</a><li><a href=https://github.com/rupert648/pert.dev/blob/main/scripts/cleanup-preview.sh>Cleanup Script</a></ul><h1 id=conclusion><a aria-label="Anchor link for: conclusion" class=zola-anchor href=#conclusion>Conclusion</a></h1><p>So there you have it! While fancy deployment platforms give you this for free, building your own preview system isn't as daunting as it might seem. With some basic systems knowledge and a few hours of work, you can have your own preview deployment system that:<ul><li>Costs nothing extra if you're already self-hosting<li>Gives you complete control over the setup<li>Helps you understand what's actually happening under the hood</ul><p>Want to see the complete implementation? Check out:<ul><li><a href=https://github.com/rupert648/pert.dev/blob/main/.github/workflows/pr-preview.yml>PR Preview Workflow</a><li><a href=https://github.com/rupert648/pert.dev/blob/main/scripts/preview.sh>PR Preview Script</a><li><a href=https://github.com/rupert648/pert.dev/blob/main/.github/workflows/cleanup-preview.yml>Cleanup Workflow</a><li><a href=https://github.com/rupert648/pert.dev/blob/main/scripts/cleanup-preview.sh>Cleanup Script</a></ul></section></article></main></div><div class=giscus></div><script async crossorigin issue-term=pathname repo=YOUR_NAME/YOUR_REPO src=https://utteranc.es/client.js theme=github-light></script></div><div class=right-content><div class=toc><div class=heading>Table of Contents</div><ul class=toc-list><li class=parent><a href=https://pert.dev/posts/easy-pr-previews/#diy-pr-preview-deployments-it-s-easier-than-you-think>DIY PR Preview Deployments: It's Easier Than You Think!</a><li class=parent><a href=https://pert.dev/posts/easy-pr-previews/#pr-previews-the-big-picture>PR-Previews: The Big Picture</a><li class=parent><a href=https://pert.dev/posts/easy-pr-previews/#initial-setup>Initial Setup</a><li class=parent><a href=https://pert.dev/posts/easy-pr-previews/#part-1-dns-magic-easier-than-you-think>Part 1: DNS Magic - Easier Than You Think</a><li class=parent><a href=https://pert.dev/posts/easy-pr-previews/#part-2-deploying-your-changes>Part 2: Deploying Your Changes</a><li class=parent><a href=https://pert.dev/posts/easy-pr-previews/#part-3-web-server-configuration>Part 3: Web Server Configuration</a><li class=parent><a href=https://pert.dev/posts/easy-pr-previews/#putting-it-all-together>Putting It All Together</a><li class=parent><a href=https://pert.dev/posts/easy-pr-previews/#cleanup>Cleanup</a><li class=parent><a href=https://pert.dev/posts/easy-pr-previews/#conclusion>Conclusion</a></ul></div></div>
