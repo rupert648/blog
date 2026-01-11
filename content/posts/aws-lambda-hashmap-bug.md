@@ -12,7 +12,7 @@ comment = true
 
 
 
-## Background
+## Background.
 
 Before I joined Cloudflare I was working on a GraphQL service aggregating and untangling the spaghetti of data we received from the herd of microservices which kept NowTV (Sky's streaming service in the UK), Peacock (NBCUniversal's streaming platform), and SkyShowtime (a European streaming service) alive. At the time this was an entirely serverless service, built on [AWS lambda serverless](https://aws.amazon.com/lambda/) compute - a decision we would come to regret for a whole host of headaches and footguns, one of which I will try my best to detail in this post. Whilst I'd had some experience delivering some hobby projects onto various serverless compute platforms, this was my first time using them to deliver anything bigger than a university project. I and this team just so happened to be maintaining a not so insignificant service handling upwards of 3 million requests a day, across multiple regions, services and a disturbingly dynamic traffic pattern.
 
