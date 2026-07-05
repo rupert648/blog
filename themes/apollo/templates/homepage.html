@@ -8,6 +8,11 @@
                 {{ section.content | safe }}
             </section>
         </article>
+
+        {% set posts_section = get_section(path="posts/_index.md") %}
+        <section class="post-list">
+            {{ post_macros::list_posts(pages=posts_section.pages) }}
+        </section>
     </main>
 {% endmacro home_page %}
 
